@@ -4,6 +4,7 @@ require 'erb'
 require 'pry'
 
 
+
 def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5, '0')[0..4]
 end
@@ -44,6 +45,23 @@ def save_thank_you_letter(id, form_letter)
   end
 end
 
+def best_hours(csv,column)
+  hours = {}
+  hours.default = 0
+
+  csv.each { |row|
+    time = Time.parse(row[column].split(' ')[1])
+    hours[time.hour] += 1
+  }
+  hours = hours.sort_by { |key, value| value}.reverse
+end
+
+def show_best_hours(array)
+  puts "Busy hours in regards of registration:"
+  3.times {|i| 
+    puts "#{i+1}. Hour: #{array[i][0]}. Registration count in that hour: #{array[i][1]}"
+  }
+end
 puts 'EventManager initialized.'
 
 contents = CSV.open(
@@ -55,10 +73,13 @@ contents = CSV.open(
 template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
 
+show_best_hours(best_hours(contents, :regdate))
+
+
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
-
+  
   zipcode = clean_zipcode(row[:zipcode])
 
   phone_number = clean_phonenumber(row[:homephone])
